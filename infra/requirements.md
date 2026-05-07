@@ -1,7 +1,5 @@
 # PRISM Infrastructure Requirements
 
-This document outlines the software and hardware prerequisites for the **Person D (Infra/Ops)** role to successfully run the Self-Healing Enterprise Automation Mesh.
-
 ## 💻 Local Developer Environment
 
 ### Core Tools
@@ -42,7 +40,7 @@ The following secrets must be populated in `infra/k8s/secrets.yaml` for full fun
 ---
 
 ## 📦 Container Images
-The system currently uses these base images (to be updated by Person C):
+The system currently uses these base images 
 - `n8nio/n8n:latest`
 - `ghcr.io/openclaw/openclaw:latest`
 - `postgres:14-alpine`
