@@ -1,0 +1,18 @@
+# Kubernetes Secrets (CRITICAL)
+infrastructure/k8s/secrets.yaml
+
+# Helm 
+# (Ignore the generated lock files if you want to keep it clean)
+# *.lock
+
+# Logs & Temporary files
+*.log
+.DS_Store
+Thumbs.db
+
+# n8n / OpenClaw local data
+.n8n/
+openclaw_data/
+
+# OS specific files
+[Dd]esktop.ini
