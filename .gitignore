@@ -1,5 +1,5 @@
 # Kubernetes Secrets (CRITICAL)
-infrastructure/k8s/secrets.yaml
+infra/k8s/secrets.yaml
 
 # Helm 
 # (Ignore the generated lock files if you want to keep it clean)

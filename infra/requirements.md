@@ -30,7 +30,7 @@ The infrastructure is designed to run in a namespace named `prism`.
 
 ## 🔑 External API Requirements
 
-The following secrets must be populated in `infrastructure/k8s/secrets.yaml` for full functionality:
+The following secrets must be populated in `infra/k8s/secrets.yaml` for full functionality:
 
 | Secret Name | Purpose |
 | :--- | :--- |
