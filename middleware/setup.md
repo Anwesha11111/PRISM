@@ -28,7 +28,7 @@ Before running the service, set the following environment variables:
 | Variable | Description | Default |
 | :--- | :--- | :--- |
 | `OPENCLAW_AUTH_TOKEN` | Bearer token for n8n -> Middleware auth | `prism-secret` |
-| `GEMINI_API_KEY` | Your Google Gemini API Key | (Required for AI calls) |
+| `GROQ_API_KEY` | Your Groq API Key (Llama3-70b) | (Required for AI calls) |
 
 ---
 

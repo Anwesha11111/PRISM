@@ -16,3 +16,4 @@ openclaw_data/
 
 # OS specific files
 [Dd]esktop.ini
+.env

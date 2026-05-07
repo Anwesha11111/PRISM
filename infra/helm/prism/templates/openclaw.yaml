@@ -17,11 +17,11 @@ spec:
       - name: openclaw
         image: {{ .Values.openclaw.image }}
         env:
-        - name: GEMINI_API_KEY
+        - name: GROQ_API_KEY
           valueFrom:
             secretKeyRef:
               name: prism-secrets
-              key: GEMINI_API_KEY
+              key: GROQ_API_KEY
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
