@@ -2,9 +2,11 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Wifi, Bell, Search, Command as CommandIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
 export function TopBar({ title, subtitle }: { title: string; subtitle?: string }) {
   const [syncing, setSyncing] = useState(false);
+  const navigate = useNavigate();
 
   const handleSync = () => {
     setSyncing(true);
@@ -20,9 +22,35 @@ export function TopBar({ title, subtitle }: { title: string; subtitle?: string }
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
-    toast.info(`Searching for: "${query}"`, {
-      description: "No local matches found. Expanding search to cluster logs...",
-    });
+
+    const lowerQuery = query.toLowerCase();
+    
+    // 1. Audit / Log Search
+    if (lowerQuery.includes("audit") || lowerQuery.includes("log")) {
+      toast.success("Audit Log Found", { description: "Navigating to global audit trail..." });
+      navigate({ to: "/audit" });
+    } 
+    // 2. Comms / Chat Search
+    else if (lowerQuery.includes("comm") || lowerQuery.includes("chat") || lowerQuery.includes("talk")) {
+      toast.success("Comm Link Found", { description: "Opening secure agent channel..." });
+      navigate({ to: "/comms" });
+    }
+    // 3. Incident / Agent / Service Search
+    else if (
+      lowerQuery.includes("err") || lowerQuery.includes("inc") || 
+      lowerQuery.includes("99") || lowerQuery.includes("gate") || 
+      lowerQuery.includes("pay") || lowerQuery.includes("heal") || 
+      lowerQuery.includes("doct")
+    ) {
+      toast.success(`Incident Found!`, { description: `Navigating to triage view for "${query}"...` });
+      navigate({ to: "/triage" });
+    } 
+    // 4. Fallback
+    else {
+      toast.info(`Searching for: "${query}"`, {
+        description: "No local matches found. Expanding search to cluster logs...",
+      });
+    }
     setQuery("");
   };
 
