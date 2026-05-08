@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, XCircle, Terminal, AlertTriangle, ShieldCheck, GitBranch, Bot } from "lucide-react";
 import { MeshLayout } from "@/components/mesh/Layout";
 import { DiffViewer } from "@/components/mesh/DiffViewer";
-import { initialIncidents, type Incident } from "@/lib/mock-mesh";
+import type { Incident } from "@/lib/mock-mesh";
 
 export const Route = createFileRoute("/triage")({
   head: () => ({
@@ -16,17 +16,63 @@ export const Route = createFileRoute("/triage")({
 });
 
 function Triage() {
-  const [incidents, setIncidents] = useState<Incident[]>(initialIncidents);
-  const [selectedId, setSelectedId] = useState<string>(initialIncidents[0].id);
-  const selected = incidents.find((i) => i.id === selectedId)!;
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const act = (decision: "approve" | "reject") => {
-    setIncidents((prev) =>
-      prev.map((i) =>
-        i.id === selectedId ? { ...i, status: decision === "approve" ? "deploying" : "rejected" } : i
-      )
-    );
+  const fetchIncidents = async () => {
+    try {
+      const res = await fetch("http://localhost:8082/v1/incidents");
+      const data = await res.json();
+      setIncidents(data);
+      if (data.length > 0 && !selectedId) {
+        setSelectedId(data[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to fetch incidents", err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchIncidents();
+  }, []);
+
+  const selected = incidents.find((i) => i.id === selectedId);
+
+  const act = async (decision: "approve" | "reject") => {
+    if (!selectedId) return;
+    try {
+      await fetch(`http://localhost:8082/v1/incidents/${selectedId}/${decision}`, {
+        method: "POST",
+      });
+      fetchIncidents(); // Refresh list
+    } catch (err) {
+      console.error(`Failed to ${decision} incident`, err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <MeshLayout title="Incident Triage" subtitle="Loading active incidents...">
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      </MeshLayout>
+    );
+  }
+
+  if (!selected) {
+    return (
+      <MeshLayout title="Incident Triage" subtitle="No active incidents in queue">
+        <div className="flex h-64 flex-col items-center justify-center gap-4 text-muted-foreground">
+          <CheckCircle2 className="h-12 w-12 text-success opacity-20" />
+          <p>The mesh is healthy. No incidents require triage.</p>
+        </div>
+      </MeshLayout>
+    );
+  }
 
   return (
     <MeshLayout title="Incident Triage" subtitle="Review agent-proposed remediations">
@@ -65,9 +111,9 @@ function Triage() {
                 </div>
                 {i.status !== "pending" && (
                   <div className={`mt-3 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] uppercase tracking-wider ${
-                    i.status === "deploying" ? "bg-info/15 text-info"
+                    i.status === "resolved" ? "bg-success/15 text-success"
                     : i.status === "rejected" ? "bg-destructive/15 text-destructive"
-                    : "bg-success/15 text-success"
+                    : "bg-info/15 text-info"
                   }`}>
                     {i.status}
                   </div>
@@ -90,14 +136,24 @@ function Triage() {
                 Root cause: <span className="text-foreground">{selected.rootCause}</span>
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => act("reject")} className="inline-flex items-center gap-2 rounded-lg border border-border bg-background/60 px-4 py-2 text-sm font-medium transition hover:border-destructive/40 hover:text-destructive">
-                <XCircle className="h-4 w-4" /> Reject & reroute
-              </button>
-              <button onClick={() => act("approve")} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-primary-glow px-4 py-2 text-sm font-semibold text-primary-foreground panel-glow transition hover:opacity-95">
-                <CheckCircle2 className="h-4 w-4" /> Approve & kubectl apply
-              </button>
-            </div>
+            {selected.status === "pending" && (
+              <div className="flex items-center gap-2">
+                <button onClick={() => act("reject")} className="inline-flex items-center gap-2 rounded-lg border border-border bg-background/60 px-4 py-2 text-sm font-medium transition hover:border-destructive/40 hover:text-destructive">
+                  <XCircle className="h-4 w-4" /> Reject & reroute
+                </button>
+                <button onClick={() => act("approve")} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-primary-glow px-4 py-2 text-sm font-semibold text-primary-foreground panel-glow transition hover:opacity-95">
+                  <CheckCircle2 className="h-4 w-4" /> Approve & kubectl apply
+                </button>
+              </div>
+            )}
+            {selected.status !== "pending" && (
+              <div className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold ${
+                selected.status === "resolved" ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
+              }`}>
+                {selected.status === "resolved" ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                Action: {selected.status.toUpperCase()}
+              </div>
+            )}
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">

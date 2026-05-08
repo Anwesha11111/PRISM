@@ -1,9 +1,12 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldCheck, Bot, Zap, AlertTriangle, ArrowUpRight, CheckCircle2, Clock, Sparkles, Command, Cpu, Network, Activity } from "lucide-react";
 import { MeshLayout } from "@/components/mesh/Layout";
 import { KpiCard } from "@/components/mesh/KpiCard";
 import { Topology } from "@/components/mesh/Topology";
-import { auditEntries, initialIncidents } from "@/lib/mock-mesh";
+import { auditEntries } from "@/lib/mock-mesh";
+import type { Incident } from "@/lib/mock-mesh";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -50,6 +53,17 @@ const tickerItems = [
 ];
 
 function MeshPulse() {
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    fetch("http://localhost:8082/v1/incidents")
+      .then(res => res.json())
+      .then(data => setIncidents(data))
+      .catch(err => console.error("Dashboard fetch error:", err));
+  }, []);
+
+  const pendingIncidents = incidents.filter(i => i.status === "pending");
   return (
     <MeshLayout title="Mesh Pulse" subtitle="Realtime health · n8n × OpenClaw × Kubernetes">
       <div className="space-y-6">
@@ -137,7 +151,7 @@ function MeshPulse() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <KpiCard label="Health Score" value="98.4%" delta="+1.2 vs 24h" icon={ShieldCheck} accent="success" />
           <KpiCard label="Auto-Heal Rate" value="91.7%" delta="+4.8% this week" icon={Zap} accent="primary" />
-          <KpiCard label="Active Interventions" value="2" delta="2 pending approval" trend="down" icon={AlertTriangle} accent="warning" />
+          <KpiCard label="Active Interventions" value={pendingIncidents.length.toString()} delta={`${pendingIncidents.length} pending approval`} trend="down" icon={AlertTriangle} accent="warning" />
           <KpiCard label="Agents Online" value="14" delta="OpenClaw · Ollama" icon={Bot} accent="primary" />
         </div>
 
@@ -176,7 +190,22 @@ function MeshPulse() {
                 <Link to="/triage" className="rounded-lg border border-border/60 bg-background/40 px-3 py-2 transition hover:border-primary/50">Review queue</Link>
                 <Link to="/comms" className="rounded-lg border border-border/60 bg-background/40 px-3 py-2 transition hover:border-primary/50">Open comms</Link>
                 <Link to="/audit" className="rounded-lg border border-border/60 bg-background/40 px-3 py-2 transition hover:border-primary/50">Audit log</Link>
-                <button className="rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-left transition hover:border-primary/50">Pause healing</button>
+                <button 
+                  onClick={() => {
+                    const next = !paused;
+                    setPaused(next);
+                    toast[next ? "warning" : "success"](`Autonomous healing ${next ? "paused" : "resumed"}`, {
+                      description: next ? "Manual intervention required for all incidents." : "Agents are now monitoring the mesh.",
+                    });
+                  }}
+                  className={`rounded-lg border px-3 py-2 text-left transition ${
+                    paused 
+                      ? "border-destructive/50 bg-destructive/10 text-destructive" 
+                      : "border-border/60 bg-background/40 hover:border-primary/50"
+                  }`}
+                >
+                  {paused ? "Resume healing" : "Pause healing"}
+                </button>
               </div>
             </div>
           </div>
@@ -194,7 +223,7 @@ function MeshPulse() {
               <Link to="/triage" className="text-xs text-primary hover:underline">View all →</Link>
             </div>
             <div className="space-y-3">
-              {initialIncidents.map((i) => (
+              {incidents.slice(0, 3).map((i) => (
                 <Link key={i.id} to="/triage" className="group relative block overflow-hidden rounded-xl border border-border/60 bg-background/40 p-4 transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-[0_12px_30px_-15px_oklch(0.82_0.17_195/0.5)]">
                   <span className={`absolute left-0 top-0 h-full w-[3px] ${i.severity === "critical" ? "bg-destructive" : "bg-warning"}`} />
                   <div className="flex items-start justify-between">
