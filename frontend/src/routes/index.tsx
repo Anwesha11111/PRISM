@@ -4,7 +4,7 @@ import { ShieldCheck, Bot, Zap, AlertTriangle, ArrowUpRight, CheckCircle2, Clock
 import { MeshLayout } from "@/components/mesh/Layout";
 import { KpiCard } from "@/components/mesh/KpiCard";
 import { Topology } from "@/components/mesh/Topology";
-import { auditEntries } from "@/lib/mock-mesh";
+import { initialIncidents, auditEntries } from "@/lib/mock-mesh";
 import type { Incident } from "@/lib/mock-mesh";
 import { toast } from "sonner";
 
@@ -52,15 +52,22 @@ const tickerItems = [
   { k: "policy-guard", v: "blocked unsafe egress on prod-eu-west" },
 ];
 
+import { initialIncidents } from "@/lib/mock-mesh";
+
 function MeshPulse() {
-  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [incidents, setIncidents] = useState<Incident[]>(initialIncidents);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:8082/v1/incidents")
       .then(res => res.json())
-      .then(data => setIncidents(data))
-      .catch(err => console.error("Dashboard fetch error:", err));
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) setIncidents(data);
+      })
+      .catch(err => {
+        console.warn("Live backend not detected, using mock data.", err);
+        // Fallback is already set in initial state
+      });
   }, []);
 
   const pendingIncidents = incidents.filter(i => i.status === "pending");
