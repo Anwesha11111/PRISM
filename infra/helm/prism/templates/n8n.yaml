@@ -55,10 +55,17 @@ spec:
         volumeMounts:
         - name: n8n-storage
           mountPath: /home/node/.n8n
+        - name: remediation-script
+          mountPath: /usr/local/bin/remediate.sh
+          subPath: remediate.sh
       volumes:
       - name: n8n-storage
         persistentVolumeClaim:
           claimName: n8n-pvc
+      - name: remediation-script
+        configMap:
+          name: remediation-script
+          defaultMode: 0755
 ---
 apiVersion: v1
 kind: Service

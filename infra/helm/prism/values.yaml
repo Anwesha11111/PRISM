@@ -8,8 +8,14 @@ n8n:
     dbType: postgresdb
 
 openclaw:
-  image: caprihan/openclaw:latest
+  # This is the Middleware (Person C)
+  image: prism-middleware:latest
   serviceType: ClusterIP
+
+frontend:
+  # This is for Person A (UI & Monitoring)
+  image: prism-frontend:latest
+  serviceType: LoadBalancer
 
 postgres:
   image: postgres:14-alpine

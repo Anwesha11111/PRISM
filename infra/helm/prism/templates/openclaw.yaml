@@ -22,16 +22,6 @@ spec:
             secretKeyRef:
               name: prism-secrets
               key: GROQ_API_KEY
-        - name: OPENAI_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: prism-secrets
-              key: OPENAI_API_KEY
-        - name: ANTHROPIC_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: prism-secrets
-              key: ANTHROPIC_API_KEY
         - name: OPENCLAW_AUTH_TOKEN
           valueFrom:
             secretKeyRef:
