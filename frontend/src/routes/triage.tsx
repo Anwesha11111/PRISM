@@ -4,6 +4,8 @@ import { CheckCircle2, XCircle, Terminal, AlertTriangle, ShieldCheck, GitBranch,
 import { MeshLayout } from "@/components/mesh/Layout";
 import { DiffViewer } from "@/components/mesh/DiffViewer";
 import type { Incident } from "@/lib/mock-mesh";
+import { initialIncidents } from "@/lib/mock-mesh";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/triage")({
   head: () => ({
@@ -15,8 +17,7 @@ export const Route = createFileRoute("/triage")({
   component: Triage,
 });
 
-import { initialIncidents } from "@/lib/mock-mesh";
-import { toast } from "sonner";
+
 
 function Triage() {
   const [incidents, setIncidents] = useState<Incident[]>(initialIncidents);

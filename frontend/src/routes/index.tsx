@@ -52,7 +52,7 @@ const tickerItems = [
   { k: "policy-guard", v: "blocked unsafe egress on prod-eu-west" },
 ];
 
-import { initialIncidents } from "@/lib/mock-mesh";
+
 
 function MeshPulse() {
   const [incidents, setIncidents] = useState<Incident[]>(initialIncidents);
